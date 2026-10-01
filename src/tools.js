@@ -6,13 +6,15 @@ import { confirmOdds, tableEntryPopup } from './popups.js';
 import { escapeMarkdown } from './randomEvent.js';
 import { MODULE_NAME, clampMaxConsults, getSettings } from './state.js';
 import { consultsThisReply } from './nudge.js';
+import { SCENE_NOT_ENDED, sceneCheckAllowed } from './sceneGuard.js';
 import {
     buildDescription, normalizeRolls, parseTables, resolveTableName, unknownTableError,
 } from './tableRegistry.js';
 
 export const DECLINED = 'Player declined; improvise.';
 export const LIMIT_REACHED = 'Oracle limit reached: you have already consulted the oracle in this reply. '
-    + 'Do not call mythic_fate or mythic_table again until your next reply. Narrate now using the answers you have and the fiction.';
+    + 'Do not call mythic_fate or mythic_table again until your next reply, and do not use mythic_scene or mythic_chaos instead. '
+    + 'Narrate now using the answers you have and the fiction.';
 
 const ctx = () => SillyTavern.getContext();
 
@@ -40,9 +42,14 @@ function claimConsult() {
     return true;
 }
 
-/** A new (non-dry-run) generation can't be mid-batch, so a count left by a stopped batch is stale. */
+/** The last scene check or Chaos adjustment in the batch now running, for the scene guard. */
+let sceneEventInFlight = null;
+
+/** A new (non-dry-run) generation can't be mid-batch, so state left by a stopped batch is stale. */
 export function onGenerationStarted(_type, _options, dryRun) {
-    if (!dryRun) consultsInFlight = 0;
+    if (dryRun) return;
+    consultsInFlight = 0;
+    sceneEventInFlight = null;
 }
 
 const limitReached = () => respond(LIMIT_REACHED, '🎲 **Oracle:** limit reached for this reply');
@@ -80,7 +87,8 @@ const TOOLS = [
     {
         name: 'mythic_scene',
         displayName: 'Mythic: Scene check',
-        description: 'At the start of each new scene (not the first scene of the session), commit to the scene you plan, then roll the Mythic scene check. '
+        description: 'Only when moving to a new scene: after the current scene has ended and you have called mythic_chaos, commit to the scene you plan, then roll the Mythic scene check. '
+            + 'Never call it mid-scene or to answer a question about the world; use mythic_fate for that. The first scene of the session is not checked. '
             + 'Returns Expected (play it as planned), Altered (change it meaningfully), or Interrupted (discard it; something else happens). '
             + 'The player never sees your planned scene, so describe it honestly.',
         parameters: {
@@ -92,6 +100,8 @@ const TOOLS = [
         },
         formatMessage: () => 'Checking the scene…',
         action: ({ expected }) => {
+            if (!sceneCheckAllowed(ctx().chat, sceneEventInFlight)) return respond(SCENE_NOT_ENDED, '🎬 **Scene check:** refused, scene still in progress');
+            sceneEventInFlight = 'scene';
             const r = sceneAction(String(expected ?? ''));
             // Only the outcome is shown; the planned scene stays in the tool result for the narrator.
             return respond(r.prompt, `🎬 **Scene check:** ${r.result}`);
@@ -100,7 +110,7 @@ const TOOLS = [
     {
         name: 'mythic_chaos',
         displayName: 'Mythic: Chaos Factor',
-        description: 'Call exactly once when a scene ends, before the next scene check. '
+        description: 'Call exactly once when a scene ends (the situation that drove it is resolved, or the story moves on in time or place), before the next scene check. Never mid-scene. '
             + 'Use -1 if the player character was in control of the scene, +1 if not, 0 to leave it unchanged. The Chaos Factor stays within 1–9.',
         parameters: {
             type: 'object',
@@ -113,6 +123,7 @@ const TOOLS = [
         },
         formatMessage: () => 'Adjusting the chaos…',
         action: ({ change, reason }) => {
+            sceneEventInFlight = 'chaos';
             const delta = Math.sign(Number(change) || 0);
             const r = chaosAction(delta, String(reason ?? '').trim());
             return respond(r.prompt, r.display);
@@ -221,6 +232,7 @@ function otherToolsBlock(invocations) {
 export function onToolCallsPerformed(invocations) {
     // This batch's calls are now saved in chat, where consultsThisReply sees them.
     consultsInFlight = 0;
+    sceneEventInFlight = null;
     if (!invocations.some(i => TOOL_NAMES.includes(i.name))) return;
     const { chat } = ctx();
     const message = chat[chat.length - 1];
