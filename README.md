@@ -48,3 +48,7 @@ npm test
 ```
 
 Runs the dice, Fate Chart, injection, and table-registry tests under Node, without SillyTavern. See [NOTES.md](NOTES.md) for how SillyTavern handles tool calls and what still needs checking against the book.
+
+## License
+
+AGPL-3.0, the same as SillyTavern. See [LICENSE](LICENSE).
