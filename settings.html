@@ -1,0 +1,23 @@
+<div class="mythic-settings">
+    <div class="inline-drawer">
+        <div class="inline-drawer-toggle inline-drawer-header">
+            <b>Mythic Oracle</b>
+            <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+        </div>
+        <div class="inline-drawer-content">
+            <div id="mythic_panel_slot"></div>
+
+            <h4>Meaning tables</h4>
+            <small>One per line: <code>Name | when to use</code>. These generate the <code>mythic_table</code> tool.</small>
+            <textarea id="mythic_tables" class="text_pole textarea_compact" rows="8"></textarea>
+
+            <h4>Table tool description</h4>
+            <small><code>\{{tables}}</code> is replaced with <code>- Name: when to use</code> for each table.</small>
+            <textarea id="mythic_description_template" class="text_pole textarea_compact" rows="5"></textarea>
+
+            <div class="flex-container">
+                <div id="mythic_reset_tables" class="menu_button">Reset to defaults</div>
+            </div>
+        </div>
+    </div>
+</div>

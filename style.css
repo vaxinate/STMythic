@@ -1,0 +1,30 @@
+/* Mythic Oracle styles */
+.mythic-popup h3 { margin: 0 0 0.5em; }
+.mythic-popup .mythic-question { font-style: italic; font-size: 1.1em; }
+.mythic-popup .mythic-hint { opacity: 0.8; font-size: 0.9em; }
+.popup-controls .mythic-odds-button { flex: 1 1 28%; min-width: 7em; }
+.popup-controls .mythic-odds-button.mythic-suggested { outline: 2px solid var(--SmartThemeQuoteColor); font-weight: bold; }
+
+/* Oracle bar above the chat input */
+#mythic_bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px;
+    margin-bottom: 4px;
+    border-radius: 10px;
+    background-color: var(--SmartThemeBlurTintColor);
+    border: 1px solid var(--SmartThemeBorderColor);
+    backdrop-filter: blur(var(--SmartThemeBlurStrength));
+    font-size: 0.9em;
+}
+#mythic_bar .mythic-bar-toggle { cursor: pointer; opacity: 0.8; padding: 0 4px; font-size: 1.2em; }
+#mythic_bar.mythic-collapsed .mythic-bar-body { display: none; }
+#mythic_bar .mythic-bar-body { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; flex: 1; }
+#mythic_bar .mythic-bar-button { margin: 0; padding: 2px 8px; min-width: 0; white-space: nowrap; }
+#mythic_bar .mythic-cf { display: flex; align-items: center; gap: 4px; }
+#mythic_bar .mythic-cf-label { opacity: 0.7; }
+#mythic_bar .mythic-cf-value { font-weight: bold; min-width: 1ch; text-align: center; }
+#mythic_bar .mythic-odds { display: flex; flex-wrap: wrap; gap: 3px; flex: 1; }
+#mythic_bar .mythic-odds .mythic-even { font-weight: bold; }
+#mythic_bar.mythic-busy .mythic-bar-body { opacity: 0.5; pointer-events: none; }
