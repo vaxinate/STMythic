@@ -42,8 +42,10 @@ export function resolveTableName(tables, requested) {
     return tables.find(t => t.name.toLowerCase() === wanted)?.name ?? null;
 }
 
+export const UNKNOWN_TABLE_PREFIX = 'Unknown table';
+
 export function unknownTableError(tables, requested) {
-    return `Unknown table "${requested}". Valid tables: ${tables.map(t => t.name).join(', ')}.`;
+    return `${UNKNOWN_TABLE_PREFIX} "${requested}". Valid tables: ${tables.map(t => t.name).join(', ')}.`;
 }
 
 /** 1 or 2 rolls; anything else falls back to the default of 2. */

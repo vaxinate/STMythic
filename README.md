@@ -44,6 +44,7 @@ The scene loop: at scene end the model calls `mythic_chaos`, then `mythic_scene`
 ## Settings
 
 **Extensions → Mythic Oracle** holds:
+- the max oracle calls per reply (default 1): extra `mythic_fate` or `mythic_table` calls in the same reply are refused without a popup, and the narrator is told to carry on
 - the oracle nudge switch, threshold (1–10), reminder text (`{{count}}` and ST macros work) and idle counter toggle
 - the `mythic_fate` description
 - the meaning table registry (one `Name | when to use` per line) and the `mythic_table` description template, where `{{tables}}` becomes the list

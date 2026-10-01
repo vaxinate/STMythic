@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { narratorMessagesSinceConsult, nudgeFor } from '../src/nudge.js';
+import { consultsThisReply, narratorMessagesSinceConsult, nudgeFor } from '../src/nudge.js';
 import { MODULE_NAME } from '../src/state.js';
 
 const user = () => ({ is_user: true, is_system: false });
@@ -47,4 +47,18 @@ test('skips quiet and impersonate, respects the switch, and resolves macros', ()
     assert.equal(nudgeFor({ ...settings, nudgeEnabled: false }, 5, 'normal'), '');
     assert.equal(nudgeFor(settings, 3, 'swipe', t => t.replace('{{user}}', 'Ada')), 'Idle for 3, Ada.');
     assert.equal(nudgeFor({ ...settings, nudgeThreshold: 0 }, 1, 'normal'), 'Idle for 1, {{user}}.');
+});
+
+test('consultsThisReply counts fate/table calls since the last user or narrator message', () => {
+    const playerRollMsg = playerRoll();
+    assert.equal(consultsThisReply([bot(), user()]), 0);
+    assert.equal(consultsThisReply([user(), tools('mythic_fate')]), 1);
+    assert.equal(consultsThisReply([user(), tools('mythic_fate', 'mythic_table'), tools('mythic_scene'), tools('mythic_fate')]), 3);
+    assert.equal(consultsThisReply([tools('mythic_fate'), bot(), user(), playerRollMsg]), 0);
+});
+
+test('a rejected table name is not a consult', () => {
+    const badTable = { is_user: false, is_system: true, extra: { tool_invocations: [{ name: 'mythic_table', result: 'Unknown table "Weather". Valid tables: Actions.' }] } };
+    assert.equal(consultsThisReply([user(), badTable]), 0);
+    assert.equal(narratorMessagesSinceConsult([tools('mythic_fate'), bot(), badTable, bot()], 'normal'), 2);
 });

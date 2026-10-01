@@ -4,12 +4,15 @@ import { chaosAction, fateAction, sceneAction } from './actions.js';
 import { rollD100 } from './oracle.js';
 import { confirmOdds, tableEntryPopup } from './popups.js';
 import { escapeMarkdown } from './randomEvent.js';
-import { MODULE_NAME, getSettings } from './state.js';
+import { MODULE_NAME, clampMaxConsults, getSettings } from './state.js';
+import { consultsThisReply } from './nudge.js';
 import {
     buildDescription, normalizeRolls, parseTables, resolveTableName, unknownTableError,
 } from './tableRegistry.js';
 
 export const DECLINED = 'Player declined; improvise.';
+export const LIMIT_REACHED = 'Oracle limit reached: you have already consulted the oracle in this reply. '
+    + 'Do not call mythic_fate or mythic_table again until your next reply. Narrate now using the answers you have and the fiction.';
 
 const ctx = () => SillyTavern.getContext();
 
@@ -25,6 +28,24 @@ function respond(prompt, display) {
     displays.set(prompt, [...(displays.get(prompt) ?? []), display]);
     return prompt;
 }
+
+/** Consult calls started in the batch now running; they aren't in chat until TOOL_CALLS_PERFORMED. */
+let consultsInFlight = 0;
+
+/** Enforces the per-reply cap; returns true and counts the call when it may go ahead. */
+function claimConsult() {
+    const used = consultsThisReply(ctx().chat) + consultsInFlight;
+    if (used >= clampMaxConsults(getSettings().maxConsultsPerReply)) return false;
+    consultsInFlight++;
+    return true;
+}
+
+/** A new (non-dry-run) generation can't be mid-batch, so a count left by a stopped batch is stale. */
+export function onGenerationStarted(_type, _options, dryRun) {
+    if (!dryRun) consultsInFlight = 0;
+}
+
+const limitReached = () => respond(LIMIT_REACHED, '🎲 **Oracle:** limit reached for this reply');
 
 function takeDisplay(result) {
     const queue = displays.get(result);
@@ -49,6 +70,7 @@ const TOOLS = [
         },
         formatMessage: () => 'Consulting the oracle…',
         action: async ({ question, odds }) => {
+            if (!claimConsult()) return limitReached();
             const confirmed = await confirmOdds(question, odds);
             if (!confirmed) return respond(DECLINED, '🎲 **Fate:** player declined');
             const r = await fateAction(confirmed, question);
@@ -122,7 +144,9 @@ function tableTool() {
             // Re-read the registry so a call made just after an edit validates against the current list.
             const current = parseTables(getSettings().tables);
             const name = resolveTableName(current, table);
+            // Checked before the cap so a bad name doesn't use up the reply's allowance.
             if (!name) return respond(unknownTableError(current, table), `📜 **Meaning table:** unknown table “${escapeMarkdown(String(table ?? ''))}”`);
+            if (!claimConsult()) return limitReached();
             const values = Array.from({ length: normalizeRolls(rolls) }, () => rollD100());
             const entries = await tableEntryPopup(name, values);
             if (!entries) return respond(DECLINED, `📜 **${escapeMarkdown(name)}:** player declined`);
@@ -195,6 +219,8 @@ function otherToolsBlock(invocations) {
  * rendered, so replacing `mes` hides arguments and results without affecting the model.
  */
 export function onToolCallsPerformed(invocations) {
+    // This batch's calls are now saved in chat, where consultsThisReply sees them.
+    consultsInFlight = 0;
     if (!invocations.some(i => TOOL_NAMES.includes(i.name))) return;
     const { chat } = ctx();
     const message = chat[chat.length - 1];

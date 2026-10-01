@@ -1,7 +1,7 @@
 // Settings drawer: oracle nudge, tool descriptions, and the table registry.
 import {
     DEFAULT_DESCRIPTION_TEMPLATE, DEFAULT_FATE_DESCRIPTION, DEFAULT_NUDGE_TEXT, DEFAULT_TABLES,
-    clampThreshold, getSettings, saveSettings,
+    clampMaxConsults, clampThreshold, getSettings, saveSettings,
 } from './state.js';
 import { registerFateTool, registerTableTool } from './tools.js';
 import { refreshPanel } from './panel.js';
@@ -64,13 +64,17 @@ export async function renderSettings() {
     bindCheckbox('#mythic_nudge_enabled', 'nudgeEnabled');
     bindCheckbox('#mythic_show_idle', 'showIdleCounter');
 
-    const threshold = root.find('#mythic_nudge_threshold');
-    threshold.val(clampThreshold(settings.nudgeThreshold)).on('change', () => {
-        settings.nudgeThreshold = clampThreshold(threshold.val());
-        threshold.val(settings.nudgeThreshold);
-        saveSettings();
-        refreshPanel();
-    });
+    const bindNumber = (selector, key, clamp) => {
+        const field = root.find(selector);
+        field.val(clamp(settings[key])).on('change', () => {
+            settings[key] = clamp(field.val());
+            field.val(settings[key]);
+            saveSettings();
+            refreshPanel();
+        });
+    };
+    bindNumber('#mythic_nudge_threshold', 'nudgeThreshold', clampThreshold);
+    bindNumber('#mythic_max_consults', 'maxConsultsPerReply', clampMaxConsults);
 
     return root;
 }

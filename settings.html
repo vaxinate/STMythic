@@ -5,6 +5,13 @@
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">
+            <h4>Oracle calls</h4>
+            <label class="mythic-inline-field" for="mythic_max_consults">
+                <span>Max oracle calls per reply</span>
+                <input type="number" id="mythic_max_consults" class="text_pole" min="1" max="5" step="1">
+            </label>
+            <small>Further <code>mythic_fate</code> or <code>mythic_table</code> calls in the same reply are refused without a popup, and the narrator is told to carry on with what it has.</small>
+
             <h4>Oracle nudge</h4>
             <small>Reminds the narrator to consult the oracle after this many replies without calling <code>mythic_fate</code> or <code>mythic_table</code>. Player rolls, scene checks and chaos changes don't reset the count.</small>
             <label class="checkbox_label" for="mythic_nudge_enabled">

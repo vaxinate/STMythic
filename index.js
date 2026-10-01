@@ -3,7 +3,7 @@ import { MODULE_NAME } from './src/state.js';
 import { clearInjection, interceptor } from './src/chat.js';
 import { clearNudge, nudgeInterceptor } from './src/nudge.js';
 import { registerCommands } from './src/commands.js';
-import { onToolCallsPerformed, registerTools } from './src/tools.js';
+import { onGenerationStarted, onToolCallsPerformed, registerTools } from './src/tools.js';
 import { renderSettings } from './src/settings.js';
 import { refreshPanel, renderPanel } from './src/panel.js';
 
@@ -23,6 +23,7 @@ jQuery(async () => {
     // Registered regardless of the current API: ST only sends tools when tool calling is supported.
     registerTools();
     eventSource.on(event_types.TOOL_CALLS_PERFORMED, onToolCallsPerformed);
+    eventSource.on(event_types.GENERATION_STARTED, onGenerationStarted);
     for (const event of [event_types.GENERATION_ENDED, event_types.GENERATION_STOPPED, event_types.CHAT_CHANGED]) {
         eventSource.on(event, clearInjections);
     }
