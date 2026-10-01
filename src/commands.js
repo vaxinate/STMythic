@@ -4,14 +4,14 @@ import { getCF } from './state.js';
 import { postResult } from './chat.js';
 import { chaosAction, fateAction, sceneAction } from './actions.js';
 
-async function post(result) {
-    await postResult(result.display, result.prompt);
+const post = (kind) => async (result) => {
+    await postResult(result.display, result.prompt, kind);
     return result;
-}
+};
 
-export const playerFate = (odds, question, rng) => fateAction(odds, question, rng).then(post);
-export const playerScene = () => post(sceneAction());
-export const playerChaos = (delta, reason) => post(chaosAction(delta, reason));
+export const playerFate = (odds, question, rng) => fateAction(odds, question, rng).then(post('fate'));
+export const playerScene = () => post('scene')(sceneAction());
+export const playerChaos = (delta, reason) => post('chaos')(chaosAction(delta, reason));
 
 export function registerCommands() {
     const { SlashCommandParser, SlashCommand, SlashCommandArgument, SlashCommandNamedArgument, ARGUMENT_TYPE } =
