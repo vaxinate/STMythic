@@ -39,11 +39,12 @@ Canceling any popup tells the narrator "Player declined; improvise."
 
 Models tend to call `mythic_scene` reliably but invent answers instead of calling `mythic_fate` or `mythic_table`. After a set number of narrator replies (default 3) without either of those calls, the next generation gets a hidden one-shot reminder to resolve uncertain facts through the oracle. Player rolls, scene checks and chaos changes don't reset the count. The oracle bar shows "Oracle idle: n/3" so you can see the next nudge coming.
 
-The scene loop: at scene end the model calls `mythic_chaos`, then `mythic_scene` for the next scene, then play continues. The first scene of a session isn't checked.
+The scene loop: at scene end the model calls `mythic_chaos`, then `mythic_scene` for the next scene, then play continues. The first scene of a session isn't checked. A `mythic_scene` call is refused unless a Chaos adjustment (`mythic_chaos` or `/chaos`) came after the last scene check, so the model can't run scene checks mid-scene.
 
 ## Settings
 
 **Extensions → Mythic Oracle** holds:
+- the max oracle calls per reply (default 1): extra `mythic_fate` or `mythic_table` calls in the same reply are refused without a popup, and the narrator is told to carry on
 - the oracle nudge switch, threshold (1–10), reminder text (`{{count}}` and ST macros work) and idle counter toggle
 - the `mythic_fate` description
 - the meaning table registry (one `Name | when to use` per line) and the `mythic_table` description template, where `{{tables}}` becomes the list

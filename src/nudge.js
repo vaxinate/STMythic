@@ -1,5 +1,6 @@
 // Oracle nudge (CR-001): remind the narrator to consult the oracle after a run of replies without it.
 import { clampThreshold, getSettings } from './state.js';
+import { UNKNOWN_TABLE_PREFIX } from './tableRegistry.js';
 
 const INJECTION_KEY = 'mythic_oracle_nudge';
 const CONSULT_TOOLS = ['mythic_fate', 'mythic_table'];
@@ -7,10 +8,15 @@ const SKIPPED_TYPES = ['quiet', 'impersonate'];
 
 const ctx = () => SillyTavern.getContext();
 
+/** A fate or table call that reached the oracle; a rejected table name doesn't count. */
+function isConsultCall(invocation) {
+    return CONSULT_TOOLS.includes(invocation?.name) && !String(invocation.result ?? '').startsWith(UNKNOWN_TABLE_PREFIX);
+}
+
 /** A message holding a narrator mythic_fate or mythic_table tool call. */
 function isConsult(message) {
     const invocations = message?.extra?.tool_invocations;
-    return Array.isArray(invocations) && invocations.some(i => CONSULT_TOOLS.includes(i?.name));
+    return Array.isArray(invocations) && invocations.some(isConsultCall);
 }
 
 /**
@@ -26,6 +32,21 @@ export function narratorMessagesSinceConsult(chat, type) {
         const message = history[i];
         if (isConsult(message)) break;
         if (!message.is_user && !message.is_system) count++;
+    }
+    return count;
+}
+
+/**
+ * mythic_fate / mythic_table calls the narrator has already made in the reply it's working on:
+ * those in tool-call messages after the last user or narrator message.
+ */
+export function consultsThisReply(chat) {
+    let count = 0;
+    for (let i = chat.length - 1; i >= 0; i--) {
+        const message = chat[i];
+        if (!message.is_system) break;
+        const invocations = message.extra?.tool_invocations;
+        if (Array.isArray(invocations)) count += invocations.filter(isConsultCall).length;
     }
     return count;
 }
