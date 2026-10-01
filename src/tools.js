@@ -4,7 +4,7 @@ import { chaosAction, fateAction, sceneAction } from './actions.js';
 import { rollD100 } from './oracle.js';
 import { confirmOdds, tableEntryPopup } from './popups.js';
 import { escapeMarkdown } from './randomEvent.js';
-import { getSettings } from './state.js';
+import { MODULE_NAME, getSettings } from './state.js';
 import {
     buildDescription, normalizeRolls, parseTables, resolveTableName, unknownTableError,
 } from './tableRegistry.js';
@@ -37,9 +37,8 @@ const TOOLS = [
     {
         name: 'mythic_fate',
         displayName: 'Mythic: Fate',
-        description: 'Ask the Mythic GME Fate Chart a yes/no question when the answer is uncertain and matters to the story. '
-            + 'Suggest odds; the player confirms them and the extension rolls. The answer is binding: narrate consistently with it. '
-            + 'An Exceptional answer is a stronger yes or no. The result may include a random event you must introduce.',
+        // Editable in settings (CR-001); filled in by withDescription at registration.
+        description: null,
         parameters: {
             type: 'object',
             properties: {
@@ -138,10 +137,23 @@ function tableTool() {
 
 export const TOOL_NAMES = [...TOOLS.map(t => t.name), TABLE_TOOL];
 
+const FATE_TOOL = 'mythic_fate';
+
+function withDescription(tool) {
+    return tool.name === FATE_TOOL ? { ...tool, description: String(getSettings().fateDescription ?? '') } : tool;
+}
+
 export function registerTools() {
     const { registerFunctionTool } = ctx();
-    for (const tool of TOOLS) registerFunctionTool(tool);
+    for (const tool of TOOLS) registerFunctionTool(withDescription(tool));
     registerTableTool();
+}
+
+/** Re-registers mythic_fate with the current description setting. Call after editing it. */
+export function registerFateTool() {
+    const { registerFunctionTool, unregisterFunctionTool } = ctx();
+    unregisterFunctionTool(FATE_TOOL);
+    registerFunctionTool(withDescription(TOOLS.find(t => t.name === FATE_TOOL)));
 }
 
 /** (Re)registers mythic_table from the current settings. Call after editing the registry. */
@@ -200,4 +212,6 @@ export function onToolCallsPerformed(invocations) {
         }
     }
     message.mes = displayToHtml(lines.join('\n')) + otherToolsBlock(others);
+    const kinds = invocations.filter(i => TOOL_NAMES.includes(i.name)).map(i => i.name.replace('mythic_', ''));
+    message.extra[MODULE_NAME] = { kinds, source: 'narrator' };
 }

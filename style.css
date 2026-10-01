@@ -28,3 +28,11 @@
 #mythic_bar .mythic-odds { display: flex; flex-wrap: wrap; gap: 3px; flex: 1; }
 #mythic_bar .mythic-odds .mythic-even { font-weight: bold; }
 #mythic_bar.mythic-busy .mythic-bar-body { opacity: 0.5; pointer-events: none; }
+#mythic_bar .mythic-idle { opacity: 0.7; font-size: 0.85em; white-space: nowrap; }
+#mythic_bar .mythic-idle.mythic-idle-due { opacity: 1; color: var(--SmartThemeQuoteColor); font-weight: bold; }
+
+/* Settings drawer */
+.mythic-settings .mythic-field-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+.mythic-settings .mythic-field-header h4 { margin: 0; }
+.mythic-settings .mythic-inline-field { display: flex; align-items: center; gap: 8px; }
+.mythic-settings .mythic-inline-field input { width: 5em; }

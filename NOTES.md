@@ -2,6 +2,7 @@
 
 ## To verify against the Mythic GME 2e book
 - [ ] Fate Chart thresholds in `src/fateChart.js` (currently the 2e ladder from memory)
+- [x] CF direction at scene end: PC in control → −1, not in control → +1 (checked in the book)
 - [ ] Can CF stay the same at scene end? (`mythic_chaos` allows change = 0)
 - [ ] Scene check: d10 ≤ CF, odd = Altered, even = Interrupted
 - [ ] Random event: doubles 11–99 with digit ≤ CF (100 never triggers)

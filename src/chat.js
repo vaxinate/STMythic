@@ -11,8 +11,9 @@ const ctx = () => SillyTavern.getContext();
  * so the narrator learns about it through the injection built in `interceptor`.
  * @param {string} display Markdown shown to the player.
  * @param {string} prompt Text the narrator receives on its next reply.
+ * @param {'fate'|'scene'|'chaos'} kind
  */
-export async function postResult(display, prompt) {
+export async function postResult(display, prompt, kind) {
     const { chat, addOneMessage, saveChat } = ctx();
     const message = {
         name: MESSAGE_NAME,
@@ -22,7 +23,7 @@ export async function postResult(display, prompt) {
         mes: display,
         extra: {
             isSmallSys: true,
-            [MODULE_NAME]: { prompt },
+            [MODULE_NAME]: { prompt, kind, source: 'player' },
         },
     };
     chat.push(message);

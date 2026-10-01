@@ -1,6 +1,7 @@
 // Oracle bar above the chat input: Chaos Factor, odds buttons, and a scene check.
 import { ODDS, ODDS_LABELS } from './fateChart.js';
-import { getCF, getSettings, onCFChange, saveSettings } from './state.js';
+import { clampThreshold, getCF, getSettings, onCFChange, saveSettings } from './state.js';
+import { idleCount } from './nudge.js';
 import { playerChaos, playerFate, playerScene } from './commands.js';
 
 const SHORT_LABELS = {
@@ -54,7 +55,16 @@ export function refreshPanel() {
     const { getCurrentChatId } = SillyTavern.getContext();
     bar.toggle(Boolean(getCurrentChatId()));
     bar.find('.mythic-cf-value').text(getCF());
-    bar.toggleClass('mythic-collapsed', Boolean(getSettings().panelCollapsed));
+    const settings = getSettings();
+    bar.toggleClass('mythic-collapsed', Boolean(settings.panelCollapsed));
+    const showIdle = Boolean(settings.showIdleCounter && settings.nudgeEnabled);
+    const threshold = clampThreshold(settings.nudgeThreshold);
+    const idle = showIdle ? idleCount() : 0;
+    bar.find('.mythic-idle')
+        .toggle(showIdle)
+        .toggleClass('mythic-idle-due', idle >= threshold)
+        .text(`Oracle idle: ${idle}/${threshold}`)
+        .attr('title', 'Narrator replies since it last called mythic_fate or mythic_table. At the threshold, the narrator is reminded to consult the oracle.');
 }
 
 export function renderPanel() {
@@ -80,8 +90,9 @@ export function renderPanel() {
     );
 
     const scene = button('Scene', 'Scene check (d10 vs Chaos Factor)', () => playerScene(), 'mythic-scene');
+    const idle = $('<span class="mythic-idle"></span>');
 
-    bar.append(toggle, $('<div class="mythic-bar-body"></div>').append(chaos, odds, scene));
+    bar.append(toggle, $('<div class="mythic-bar-body"></div>').append(chaos, odds, scene, idle));
     $('#send_form').before(bar);
 
     onCFChange(refreshPanel);

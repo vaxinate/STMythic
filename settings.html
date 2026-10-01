@@ -5,19 +5,49 @@
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">
-            <div id="mythic_panel_slot"></div>
+            <h4>Oracle nudge</h4>
+            <small>Reminds the narrator to consult the oracle after this many replies without calling <code>mythic_fate</code> or <code>mythic_table</code>. Player rolls, scene checks and chaos changes don't reset the count.</small>
+            <label class="checkbox_label" for="mythic_nudge_enabled">
+                <input type="checkbox" id="mythic_nudge_enabled">
+                <span>Oracle nudge enabled</span>
+            </label>
+            <label class="mythic-inline-field" for="mythic_nudge_threshold">
+                <span>Nudge threshold</span>
+                <input type="number" id="mythic_nudge_threshold" class="text_pole" min="1" max="10" step="1">
+            </label>
+            <label class="checkbox_label" for="mythic_show_idle">
+                <input type="checkbox" id="mythic_show_idle">
+                <span>Show idle counter in the oracle bar</span>
+            </label>
+            <div class="mythic-field-header">
+                <span>Nudge text</span>
+                <div class="menu_button menu_button_icon mythic-reset" data-reset="nudgeText" title="Reset to default"><i class="fa-solid fa-rotate-left"></i></div>
+            </div>
+            <small><code>\{{count}}</code> is the number of replies; ST macros like <code>\{{user}}</code> work too.</small>
+            <textarea id="mythic_nudge_text" class="text_pole textarea_compact" rows="5"></textarea>
 
-            <h4>Meaning tables</h4>
+            <hr>
+
+            <div class="mythic-field-header">
+                <h4>Fate tool description</h4>
+                <div class="menu_button menu_button_icon mythic-reset" data-reset="fateDescription" title="Reset to default"><i class="fa-solid fa-rotate-left"></i></div>
+            </div>
+            <small>What the narrator is told about <code>mythic_fate</code>.</small>
+            <textarea id="mythic_fate_description" class="text_pole textarea_compact" rows="8"></textarea>
+
+            <div class="mythic-field-header">
+                <h4>Meaning tables</h4>
+                <div class="menu_button menu_button_icon mythic-reset" data-reset="tables" title="Reset to default"><i class="fa-solid fa-rotate-left"></i></div>
+            </div>
             <small>One per line: <code>Name | when to use</code>. These generate the <code>mythic_table</code> tool.</small>
             <textarea id="mythic_tables" class="text_pole textarea_compact" rows="8"></textarea>
 
-            <h4>Table tool description</h4>
-            <small><code>\{{tables}}</code> is replaced with <code>- Name: when to use</code> for each table.</small>
-            <textarea id="mythic_description_template" class="text_pole textarea_compact" rows="5"></textarea>
-
-            <div class="flex-container">
-                <div id="mythic_reset_tables" class="menu_button">Reset to defaults</div>
+            <div class="mythic-field-header">
+                <h4>Table tool description</h4>
+                <div class="menu_button menu_button_icon mythic-reset" data-reset="descriptionTemplate" title="Reset to default"><i class="fa-solid fa-rotate-left"></i></div>
             </div>
+            <small><code>\{{tables}}</code> is replaced with <code>- Name: when to use</code> for each table.</small>
+            <textarea id="mythic_description_template" class="text_pole textarea_compact" rows="8"></textarea>
         </div>
     </div>
 </div>
